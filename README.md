@@ -18,7 +18,7 @@ To use it you simply do this:
 ```bash
 python sender.py -f folder -r recipient@mail.com -s mymail@gmail.com -t title -m message
 ```
-Please be alone when you use this program, because it will ask you for a password and everything you type will by show on screen.
+Please be alone when you use this program, because it will ask you for a password and everything you type will be show on screen.
 ```bash
 Type your password and press enter: Password
 ```
