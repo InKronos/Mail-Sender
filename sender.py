@@ -4,6 +4,7 @@ import tempfile
 import ssl
 from email import encoders
 from email.message import Message
+from email.header import Header
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart    
 from email.mime.text import MIMEText
@@ -25,23 +26,25 @@ def get_all_file_paths(directory):
     # returning all file paths 
     return file_paths       
 
-def send_folder_zipped(zipfile_name, recipient, sender='i15.piorkowski@gmail.com'):
-  
+def send_folder_zipped(zipfile_name, recipient, sender, title, message):
+    
+    # zipping folder
     zf = tempfile.TemporaryFile(prefix='mail', suffix='.zip')
     file_paths = get_all_file_paths(zipfile_name)
     zip =  zipfile.ZipFile(zf,'w') 
     for file in file_paths: 
-        zip.write(file)  
+        zip.write(file)  # zipping every file in the folder
     zip.close()
     zf.seek(0)
     # Create the message
     themsg = MIMEMultipart()
-    themsg['Subject'] = 'Hight Flyers Raport'
+    Subject = Header(title, "utf-8") #encoding title
+    themsg['Subject'] = Subject
     themsg['To'] = recipient
     themsg['From'] = sender
-    text = 'W załączniku znajduje się raport'
-    part2 = MIMEText(text, "plain", "utf-8")
-    themsg.attach(part2)
+    textMessage = MIMEText(message, "plain", "utf-8") #enconding message
+    themsg.attach(textMessage)
+    #adding zip file
     msg = MIMEBase('application', 'zip')
     msg.set_payload(zf.read())
     encoders.encode_base64(msg)
@@ -53,7 +56,7 @@ def send_folder_zipped(zipfile_name, recipient, sender='i15.piorkowski@gmail.com
     port = 587  # For starttls
     smtp_server = "smtp.gmail.com"
     context = ssl.create_default_context()
-    password = input("Type your password and press enter:")
+    password = input("Type your password and press enter: ")
     # send the message
     with smtplib.SMTP(smtp_server, port) as server:
         server.ehlo()  # Can be omitted
@@ -64,14 +67,13 @@ def send_folder_zipped(zipfile_name, recipient, sender='i15.piorkowski@gmail.com
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-f', action='store', dest='folder_name',
-                        help='Store folder value', default='katalog')
-    parser.add_argument('-r', action='store', dest='recipient',
-                        help='Store recipient value', default='fnaticisthebest@gmail.com')
-    parser.add_argument('-s', action='store', dest='sender',
-                        help='Store sender value', default='highflyers.polsl@gmail.com')
+    parser.add_argument('-f', action='store', dest='folder_name', help='Store folder value')
+    parser.add_argument('-r', action='store', dest='recipient', help='Store recipient value')
+    parser.add_argument('-s', action='store', dest='sender', help='Store sender value')
+    parser.add_argument('-t', action='store', dest='title', help='Store title value')
+    parser.add_argument('-m', action='store', dest='message', help='Store message value')
 
     results = parser.parse_args()
 
-    send_folder_zipped(results.folder_name, results.recipient, results.sender)
+    send_folder_zipped(results.folder_name, results.recipient, results.sender, results.title, results.message)
     
